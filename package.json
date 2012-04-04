@@ -1,0 +1,12 @@
+{
+  "name": "JWub",
+  "version": "0.0.1",
+  "author": "Rob Cameron <rwcameron@gmail.com>",
+  "description": "A replacement for JWeb",
+   "dependencies" : {
+    "control"   :  ">=0.2.3",
+    "express" :  ">=2.5.9",
+    "xml2json" : ">=0.2.4",
+    "jade": ">= 0.0.1"
+  }
+}
