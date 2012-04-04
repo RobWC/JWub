@@ -57,6 +57,7 @@ app.get('/login', function(req, res){
   var callback = function (data) {
     if (data.toString().match(/\]\]>\]\]>/g)) {
       data2process = data2process + data.toString();
+      console.log(data2process);
       processData(data2process,ssh,res);
       data2process = '';
       ssh.stdout.removeListener('data',callback);
@@ -121,15 +122,11 @@ console.log('I\'m listening on port 3000');
 var processData = function(data,child,res){
   var dataStr = data;
   var json = parser.toJson(dataStr.replace(/\]\]>\]\]>/g,'').replace(/^\s+|\s+$/g, ''));
-  res.header('Content-Type', 'application/json; charset=UTF-8');
+  //res.header('Content-Type', 'application/json');
   res.send(json);
   if (count == 0) {
     child.stdin.write(netconfCmd.sendHello());
     count++;
-  } else if (count == 100) {
-    child.stdin.write(netconfCmd.getChassis());
-    count++;
-    child.stdin.end();
   } else {
     console.log('Kill me');
   };
