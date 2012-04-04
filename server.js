@@ -125,10 +125,4 @@ var processData = function(data,child,res){
   var json = parser.toJson(dataStr.replace(/\]\]>\]\]>/g,'').replace(/^\s+|\s+$/g, ''));
   res.header('Content-Type', 'application/json');
   res.send(json);
-  if (count == 0) {
-    child.stdin.write(netconfCmd.sendHello());
-    count++;
-  } else {
-    console.log('Kill me');
-  };
 };
