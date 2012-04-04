@@ -5,7 +5,7 @@ var netconfCmd = require('./netconf-commands.js');
 var util = require('util');
 var parser = require('xml2json');
 var spawn = require('child_process').spawn;
-var ssh = spawn('ssh', ['root@10.0.1.11', '-s' ,'netconf']); //spawn on connect
+var ssh;
 var count = 0;
 var data2process = new String();
 
@@ -33,17 +33,7 @@ app.configure('production', function(){
 });
 
 //handle errors
-ssh.stderr.on('data', function (data) {
-  console.log('XXXXX stderr: ' + data + ' XXXX');
-});
 
-ssh.on('exit', function (code) {
-  console.log('child process exited with code ' + code);
-});
-
-var sendCommand = function(child,command,res) {
-  child.stdin.write(command());
-};
 
 app.get('/', function(req, res) {
   res.render('index', {
@@ -53,16 +43,27 @@ app.get('/', function(req, res) {
 
 
 app.get('/login', function(req, res){
+  ssh = spawn('ssh', ['root@10.0.1.11', '-s' ,'netconf']); //spawn on connect
+  ssh.stderr.on('data', function (data) {
+    console.log('XXXXX stderr: ' + data + ' XXXX');
+  });
+  
+  ssh.on('exit', function (code) {
+    console.log('child process exited with code ' + code);
+  });
+  ssh.stdout.on('data', function (data) {
+    console.log(data.toString());
+  });
   ssh.stdin.write(netconfCmd.sendHello());
   var callback = function (data) {
     if (data.toString().match(/\]\]>\]\]>/g)) {
       data2process = data2process + data.toString();
-      console.log(data2process);
       processData(data2process,ssh,res);
       data2process = '';
       ssh.stdout.removeListener('data',callback);
     } else {
       data2process = data2process + data.toString();
+      console.log(data.toString());
     };
   };
   ssh.stdout.on('data', callback);
@@ -122,7 +123,7 @@ console.log('I\'m listening on port 3000');
 var processData = function(data,child,res){
   var dataStr = data;
   var json = parser.toJson(dataStr.replace(/\]\]>\]\]>/g,'').replace(/^\s+|\s+$/g, ''));
-  //res.header('Content-Type', 'application/json');
+  res.header('Content-Type', 'application/json');
   res.send(json);
   if (count == 0) {
     child.stdin.write(netconfCmd.sendHello());
