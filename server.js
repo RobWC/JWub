@@ -2,7 +2,6 @@
 var netconfCmd = require('./netconf-commands.js');
 
 //ssh stuff
-var util = require('util');
 var parser = require('xml2json');
 var spawn = require('child_process').spawn;
 var ssh;
