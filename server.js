@@ -12,6 +12,7 @@ var data2process = new String();
 //configure express
 var express = require('express');
 var app = require('express').createServer();
+var RedisStore = require('connect-redis')(express);
 app.configure(function(){
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
@@ -21,6 +22,8 @@ app.configure(function(){
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(app.router);
+  app.use(express.cookieParser());
+  app.use(express.session({ secret: "the pants are undefeated", key: 'session',store: new RedisStore }));
   app.use(express.static(__dirname + '/public'));
 });
 
@@ -51,25 +54,37 @@ app.get('/login', function(req, res){
   ssh.on('exit', function (code) {
     console.log('child process exited with code ' + code);
   });
+  
   ssh.stdout.on('data', function (data) {
-    console.log(data.toString());
+    //console.log(data.toString());
   });
+  
   ssh.stdin.write(netconfCmd.sendHello());
+  
+  var sessionCallback = {
+    req: req,
+    callback: function(data,req) {
+      //console.log(req);
+      //req.session.junosSessId = data.hello.capabilities.session-id; 
+    }
+  };
+  
   var callback = function (data) {
     if (data.toString().match(/\]\]>\]\]>/g)) {
       data2process = data2process + data.toString();
-      processData(data2process,ssh,res);
+      processData(data2process,ssh,res,sessionCallback);
       data2process = '';
       ssh.stdout.removeListener('data',callback);
     } else {
       data2process = data2process + data.toString();
-      console.log(data.toString());
+      //console.log(data.toString());
     };
   };
   ssh.stdout.on('data', callback);
 });
 
 app.get('/op/get-firewall-policies', function(req, res){
+  console.log(req);
   ssh.stdin.write(netconfCmd.getPolicy());
   var callback = function (data) {
     if (data.toString().match(/\]\]>\]\]>/g)) {
@@ -120,9 +135,12 @@ app.listen(3000);
 console.log('I\'m listening on port 3000');
 
 //process data once complete
-var processData = function(data,child,res){
+var processData = function(data,child,res,sessionCallback){
   var dataStr = data;
-  var json = parser.toJson(dataStr.replace(/\]\]>\]\]>/g,'').replace(/^\s+|\s+$/g, ''));
+  var json = parser.toJson(dataStr.replace(/\]\]>\]\]>/g,'').replace(/^\s+|\s+$/g,'').replace(/(\w)[-]{1}(\w)/gi, '$1$2'));
   res.header('Content-Type', 'application/json');
   res.send(json);
+  if (!!sessionCallback) {
+    sessionCallback.callback(dataStr,sessionCallback.req);
+  };
 };

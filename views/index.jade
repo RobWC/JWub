@@ -1,5 +1,19 @@
 head
+  link(rel='stylesheet',type='text/css',href='/stylesheets/css/cupertino/jquery-ui-1.8.18.custom.css')
+  //link(rel='stylesheet',type='text/css',href='/resources/css/ext-all.css')
+  //script(type='text/javascript',src='/javascripts/ext-debug.js')  
   script(type='text/javascript',src='/javascripts/jquery-1.7.2.min.js')
-
-h1= title
-p Welcome to #{title}
+  script(type='text/javascript',src='/javascripts/jquery-ui-1.8.18.custom.min.js')
+  //script(type='text/javascript',src='/javascripts/app.js')
+  script(type='text/javascript',src='/javascripts/jquiapp.js')
+body
+  div(id='login',class='ui-widget')
+    h2 Login Status
+    div(id='status')
+    button(id='login') Click To Login
+    
+  div(id='fwd-status',class='ui-widget')
+    h2 FWD Status
+    p(id="uptime")
+    p(id="fwdd")
+    p(id="memory")
