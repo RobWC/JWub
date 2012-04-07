@@ -131,7 +131,7 @@ app.get('/op/get-route-engine-information', function(req,res){
 });
 
 app.listen(3000);
-console.log('I\'m listening on port 3000');
+console.log('I\'m listening on port 3000 and my pid is ' + process.pid);
 
 //process data once complete
 var processData = function(data,child,res,sessionCallback){
