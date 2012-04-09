@@ -38,14 +38,53 @@ app.configure('production', function(){
 
 
 app.get('/', function(req, res) {
-  res.render('index', {
-    title: 'Dashboard'
+  res.render('login', {
+    title: 'Login'
   });
 });
 
+app.post('/login', function(req, res){
+  console.log(req.body.username);
+  console.log(req.body.password);
+  ssh = spawn('ssh', ['root@10.0.1.2', '-s' ,'netconf']); //spawn on connect
+  ssh.stderr.on('data', function (data) {
+    console.log('XXXXX stderr: ' + data + ' XXXX');
+  });
+  
+  ssh.on('exit', function (code) {
+    console.log('child process exited with code ' + code);
+  });
+  
+  ssh.stdout.on('data', function (data) {
+    //console.log(data.toString());
+  });
+  
+  ssh.stdin.write(netconfCmd.sendHello());
+  
+  var sessionCallback = {
+    req: req,
+    callback: function(data,req) {
+      //console.log(req);
+      //req.session.junosSessId = data.hello.capabilities.session-id; 
+    }
+  };
+  
+  var callback = function (data) {
+    if (data.toString().match(/\]\]>\]\]>/g)) {
+      data2process = data2process + data.toString();
+      processData(data2process,ssh,res,sessionCallback);
+      data2process = '';
+      ssh.stdout.removeListener('data',callback);
+    } else {
+      data2process = data2process + data.toString();
+      //console.log(data.toString());
+    };
+  };
+  ssh.stdout.on('data', callback);
+});
 
 app.get('/login', function(req, res){
-  ssh = spawn('ssh', ['root@10.0.1.11', '-s' ,'netconf']); //spawn on connect
+  ssh = spawn('ssh', ['root@10.0.1.2', '-s' ,'netconf']); //spawn on connect
   ssh.stderr.on('data', function (data) {
     console.log('XXXXX stderr: ' + data + ' XXXX');
   });
