@@ -5,7 +5,6 @@ var netconfCmd = require('./netconf-commands.js');
 var parser = require('xml2json');
 var spawn = require('child_process').spawn;
 var ssh;
-var count = 0;
 var data2process = new String();
 
 //configure express
@@ -13,16 +12,16 @@ var express = require('express');
 var app = require('express').createServer();
 var RedisStore = require('connect-redis')(express);
 app.configure(function(){
+  app.use(express.cookieParser());
+  app.use(express.bodyParser());
+  app.use(express.session({ secret: "the pants are undefeated",store: new RedisStore }));
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
     app.set('view options', {
     layout: false
   });
-  app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(app.router);
-  app.use(express.cookieParser());
-  app.use(express.session({ secret: "the pants are undefeated", key: 'session',store: new RedisStore }));
   app.use(express.static(__dirname + '/public'));
 });
 
@@ -36,17 +35,18 @@ app.configure('production', function(){
 
 //handle errors
 
-
 app.get('/', function(req, res) {
   res.render('login', {
     title: 'Login'
   });
+  console.log(req.session);
 });
 
 app.post('/login', function(req, res){
   console.log(req.body.username);
   console.log(req.body.password);
-  ssh = spawn('ssh', ['root@10.0.1.2', '-s' ,'netconf']); //spawn on connect
+  ssh = spawn('ssh', ['root@172.19.101.132', '-s' ,'netconf']); //spawn on connect
+  
   ssh.stderr.on('data', function (data) {
     console.log('XXXXX stderr: ' + data + ' XXXX');
   });
@@ -61,11 +61,13 @@ app.post('/login', function(req, res){
   
   ssh.stdin.write(netconfCmd.sendHello());
   
+  req.session.happy = 'yes';
+  
   var sessionCallback = {
     req: req,
     callback: function(data,req) {
-      //console.log(req);
-      //req.session.junosSessId = data.hello.capabilities.session-id; 
+      console.log(data.hello.sessionid);
+      req.session.junosSessId = data.hello.sessionid;
     }
   };
   
@@ -83,6 +85,7 @@ app.post('/login', function(req, res){
   ssh.stdout.on('data', callback);
 });
 
+/*
 app.get('/login', function(req, res){
   ssh = spawn('ssh', ['root@10.0.1.2', '-s' ,'netconf']); //spawn on connect
   ssh.stderr.on('data', function (data) {
@@ -120,6 +123,7 @@ app.get('/login', function(req, res){
   };
   ssh.stdout.on('data', callback);
 });
+*/
 
 app.get('/op/get-firewall-policies', function(req, res){
   console.log(req);
@@ -179,6 +183,14 @@ var processData = function(data,child,res,sessionCallback){
   res.header('Content-Type', 'application/json');
   res.send(json);
   if (!!sessionCallback) {
-    sessionCallback.callback(dataStr,sessionCallback.req);
+    sessionCallback.callback(JSON.parse(json),sessionCallback.req);
   };
+};
+
+function requiresLogin(req,res,next) {
+  if (req.session.user) {
+    next()
+  } else {
+    res.redirect('/portal');
+  }
 };
