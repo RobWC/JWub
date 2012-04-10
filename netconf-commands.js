@@ -1,7 +1,12 @@
 //message methods
 exports.sendHello = function() {
-  var hello = '<hello><capabilities><capability>urn:ietf:params:xml:ns:netconf:base:1.0</capability><capability>urn:ietf:params:xml:ns:netconf:candidate:1.0</capability><capability>urn:ietf:params:xml:ns:netconf:confirmed-commit:1.0</capability><capability>urn:ietf:params:xml:ns:netconf:validate:1.0</capability><capability>urn:ietf:params:xml:ns:netconf:url:1.0?protocol=http,ftp,file</capability><capability>http://xml.juniper.net/netconf/junos/1.0</capability></capabilities></hello>]]>]]>';
-  return hello;
+  var rpc = '<hello><capabilities><capability>urn:ietf:params:xml:ns:netconf:base:1.0</capability><capability>urn:ietf:params:xml:ns:netconf:candidate:1.0</capability><capability>urn:ietf:params:xml:ns:netconf:confirmed-commit:1.0</capability><capability>urn:ietf:params:xml:ns:netconf:validate:1.0</capability><capability>urn:ietf:params:xml:ns:netconf:url:1.0?protocol=http,ftp,file</capability><capability>http://xml.juniper.net/netconf/junos/1.0</capability></capabilities></hello>]]>]]>';
+  return rpc;
+};
+
+exports.closeSession = function() {
+  var rpc = '<rpc><close-session/></rpc>]]>]]>';
+  return rpc;
 };
 
 exports.getChassis = function() {
