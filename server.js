@@ -50,17 +50,6 @@ app.post('/login', function(req, res){
   //console.log(req.body.password);
   ssh = spawn('ssh', ['root@10.0.1.2', '-s' ,'netconf']); //spawn on connect
   
-  var sessionCallback = {
-    req: req,
-    callback: function(data,req) {
-      console.log(data.hello.sessionid);
-      if (!!data.hello.sessionid) {
-        req.session.junosid = data.hello.sessionid;
-        req.session.pants = "hello";
-      }
-    }
-  };
-  
   var callback = function (data) {
     if (data.toString().match(/\]\]>\]\]>/g)) {
       data2process = data2process + data.toString();
@@ -94,46 +83,6 @@ app.post('/login', function(req, res){
   ssh.stdin.write(netconfCmd.sendHello()); 
   
 });
-
-/*
-app.get('/login', function(req, res){
-  ssh = spawn('ssh', ['root@10.0.1.2', '-s' ,'netconf']); //spawn on connect
-  ssh.stderr.on('data', function (data) {
-    console.log('XXXXX stderr: ' + data + ' XXXX');
-  });
-  
-  ssh.on('exit', function (code) {
-    console.log('child process exited with code ' + code);
-  });
-  
-  ssh.stdout.on('data', function (data) {
-    //console.log(data.toString());
-  });
-  
-  ssh.stdin.write(netconfCmd.sendHello());
-  
-  var sessionCallback = {
-    req: req,
-    callback: function(data,req) {
-      //console.log(req);
-      //req.session.junosSessId = data.hello.capabilities.session-id; 
-    }
-  };
-  
-  var callback = function (data) {
-    if (data.toString().match(/\]\]>\]\]>/g)) {
-      data2process = data2process + data.toString();
-      processData(data2process,ssh,res,sessionCallback);
-      data2process = '';
-      ssh.stdout.removeListener('data',callback);
-    } else {
-      data2process = data2process + data.toString();
-      //console.log(data.toString());
-    };
-  };
-  ssh.stdout.on('data', callback);
-});
-*/
 
 app.get('/op/get-firewall-policies',requiresLogin,function(req, res){
   console.log(req);
@@ -202,13 +151,15 @@ function requiresLogin(req,res,next) {
   console.log(sessionID);
   req.sessionStore.get(sessionID, function(err,data){
     if (!!data) {
-      if (!!data.junosid && req.session.junosid == data.junosid) {
+      if (req.session.junosid == data.junosid) {
+        //check the ssh session is active somehow
+        console.log('next');
         next();
       } else {
         res.redirect('/portal');
-      }  
+      };
     } else {
       res.redirect('/portal');
-    }
+    };
   });
 };
