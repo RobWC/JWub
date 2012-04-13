@@ -4,7 +4,7 @@ var netconfCmd = require('./netconf-commands.js');
 //ssh stuff
 var parser = require('xml2json');
 var spawn = require('child_process').spawn;
-var ssh;
+var sshSessions = new Array();
 var data2process = new String();
 
 //configure express
@@ -14,7 +14,7 @@ var RedisStore = require('connect-redis')(express);
 app.configure(function(){
   app.use(express.cookieParser());
   app.use(express.bodyParser());
-  app.use(express.session({ secret: "the pants are undefeated",store: new RedisStore }));
+  app.use(express.session({ secret: "the pants are undefeated",store: new RedisStore,  cookie: { path: '/', httpOnly: true, maxAge: 300000 }}));
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
     app.set('view options', {
@@ -35,20 +35,21 @@ app.configure('production', function(){
 
 //handle errors
 
-app.get('/', function(req, res) {
+app.get('/',loginNeeded,function(req, res) {
+  //check if logged in already
   res.render('login', {
     title: 'Login'
   });
 });
 
-app.get('/portal',function(req,res){
-  res.write('hello');
+app.get('/portal',requiresLogin,function(req,res){
+  res.end('hello');
 });
 
 app.post('/login', function(req, res){
   //console.log(req.body.username);
   //console.log(req.body.password);
-  ssh = spawn('ssh', ['root@10.0.1.2', '-s' ,'netconf']); //spawn on connect
+  var ssh = spawn('ssh', ['root@10.0.1.2', '-s' ,'netconf']); //spawn on connect
   
   var callback = function (data) {
     if (data.toString().match(/\]\]>\]\]>/g)) {
@@ -61,9 +62,11 @@ app.post('/login', function(req, res){
       console.log(parsedJson.hello.sessionid);
       if (!!parsedJson.hello.sessionid) {
         req.session.junosid = parsedJson.hello.sessionid;
-      }
-      res.header('Content-Type', 'application/json');
-      res.send(json);
+        sshSessions[parsedJson.hello.sessionid] = ssh;
+      };
+      //res.header('Content-Type', 'application/json');
+      //res.send(json);
+      res.redirect('/portal');
       ssh.stdout.removeListener('data',callback);
     } else {
       data2process = data2process + data.toString();
@@ -130,7 +133,7 @@ app.get('/op/get-route-engine-information',requiresLogin, function(req,res){
     };
   };
   ssh.stdout.on('data', callback);
-});
+}); 
 
 app.listen(3000);
 console.log('I\'m listening on port 3000 and my pid is ' + process.pid);
@@ -146,6 +149,25 @@ var processData = function(data,child,res,sessionCallback,req){
   };
 };
 
+function loginNeeded(req,res,next) {
+  var sessionID = req.sessionID;
+  console.log(sessionID);
+  req.sessionStore.get(sessionID, function(err,data){
+    if (!!data) {
+      if (req.session.junosid == data.junosid) {
+        //check the ssh session is active somehow
+        console.log('next');
+        next();
+      } else {
+        next();
+        res.redirect('/portal');
+      };
+    } else {
+      res.redirect('/');
+    };
+  });
+};
+
 function requiresLogin(req,res,next) {
   var sessionID = req.sessionID;
   console.log(sessionID);
@@ -156,10 +178,32 @@ function requiresLogin(req,res,next) {
         console.log('next');
         next();
       } else {
-        res.redirect('/portal');
+        res.redirect('/');
       };
     } else {
-      res.redirect('/portal');
+      res.redirect('/');
     };
   });
 };
+
+function getSSHSession(req) {
+  //grab session ID
+  //grab session object
+  //check to see if session is alive
+  //return alive session s
+  var sessID = req.session.junosid;
+  req.sessionStore.get(sessID, function(err,data){
+    if (!!data) {
+      if (sessID == data.junosid) {
+        //check the ssh session is active somehow
+        
+      } else {
+        next();
+        res.redirect('/portal');
+      };
+    } else {
+      res.redirect('/');
+    };
+  });
+  return  
+}
