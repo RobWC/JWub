@@ -43,14 +43,15 @@ app.get('/',loginNeeded,function(req, res) {
 });
 
 app.get('/portal',requiresLogin,function(req,res){
-  res.end('hello');
+  res.render('portal', {
+    title: 'Home Portal'
+  });
 });
 
 app.post('/login', function(req, res){
   //console.log(req.body.username);
   //console.log(req.body.password);
-  var ssh = spawn('ssh', ['root@localhost', '-p', '1234', '-s' ,'netconf']); //spawn on connect
-  
+  var ssh = spawn('ssh', ['root@10.0.1.2', '-s' ,'netconf']); //spawn on connect
   var callback = function (data) {
     if (data.toString().match(/\]\]>\]\]>/g)) {
       data2process = data2process + data.toString();
@@ -193,17 +194,19 @@ function getSSHSession(req) {
   //return alive session s
   var sessID = req.session.junosid;
   req.sessionStore.get(sessID, function(err,data){
+    if (err) {
+      console.log(err);
+    };
     if (!!data) {
       if (sessID == data.junosid) {
         //check the ssh session is active somehow
-        
+          return sshSessions[data.junosid] //ssh session
       } else {
-        next();
-        res.redirect('/portal');
+        return 1;
       };
     } else {
-      res.redirect('/');
+      return 1;
     };
+    return 1; //return 1 as something bad happened
   });
-  return  
 }

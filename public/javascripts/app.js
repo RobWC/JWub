@@ -9,7 +9,24 @@ Ext.define('JWub.view.ui.LoginForm', {
   },
   defaults: {
     listeners: {
-      specialkey: submitOnEnter
+      specialkey: function(field, event) {
+        if (event.getKey() == event.ENTER) {
+          var form = Ext.getCmp('loginForm');
+          if (form.form.isValid()) {
+            // Submit the Ajax request and handle the response
+            form.submit({
+              url: '/login',
+              method: 'POST',
+              success: function(form, action) {
+                Ext.Msg.alert('Success', action.result.msg);
+              },
+              failure: function(form, action) {
+                Ext.Msg.alert('Failed', action.result.msg);
+              }
+            });
+          }
+        };
+      }
     }
   },
   bodyPadding: 10,
@@ -40,7 +57,22 @@ Ext.define('JWub.view.ui.LoginForm', {
         type: 'submit',
         x: 110,
         y: 160,
-        handler: submitHandler
+        handler: function() {
+          var form = Ext.getCmp('loginForm');
+          if (form.form.isValid()) {
+            // Submit the Ajax request and handle the response
+            form.submit({
+              url: '/login',
+              method: 'POST',
+              success: function(form, action) {
+                Ext.Msg.alert('Success', action.result.msg);
+              },
+              failure: function(form, action) {
+                Ext.Msg.alert('Failed', action.result.msg);
+              }
+            });
+          }
+        }
       }, {
         xtype: 'button',
         height: 20,
@@ -53,40 +85,18 @@ Ext.define('JWub.view.ui.LoginForm', {
           Ext.getCmp('username').setValue();
           Ext.getCmp('password').setValue();
         }
-      }]
+      }],
+      renderTo: Ext.getBody()
     });
     me.callParent(arguments);
   }
 });
 
-function submitOnEnter(field, event) {
-  if (event.getKey() == event.ENTER) {
-    submitHandler();
-  };
-}
-
-function submitHandler() {
-  var form = Ext.getCmp('form').getForm();
-  if (form.isValid()) {
-    // Submit the Ajax request and handle the response
-    form.submit({
-      url: '/login',
-      method: 'POST',
-      success: function(form, action) {
-        Ext.Msg.alert('Success', action.result.msg);
-      },
-      failure: function(form, action) {
-        Ext.Msg.alert('Failed', action.result.msg);
-      }
-    });
-  }
-}
-
 Ext.application({
   name: 'JWub',
   launch: function() {
     Ext.create('JWub.view.ui.LoginForm', {
-      renderTo: Ext.getBody()
+
     });
   }
 });
