@@ -28,3 +28,8 @@ exports.getRouteEngineInformation = function() {
   var rpc = '<rpc><get-route-engine-information></get-route-engine-information></rpc>';
   return rpc;
 };
+
+exports.getAuthorizationInformation = function() {
+  var rpc = '<rpc><get-authorization-information></get-authorization-information></rpc>';
+  return rpc;
+};

@@ -60,14 +60,13 @@ app.post('/login', function(req, res){
       //processData(data2process,ssh,res,sessionCallback,req);
       var json = parser.toJson(dataStr.replace(/\]\]>\]\]>/g,'').replace(/^\s+|\s+$/g,'').replace(/(\w)[-]{1}(\w)/gi, '$1$2'));
       var parsedJson = JSON.parse(json);
-      console.log(parsedJson.hello.sessionid);
       if (!!parsedJson.hello.sessionid) {
         req.session.junosid = parsedJson.hello.sessionid;
         sshSessions[parsedJson.hello.sessionid] = ssh;
       };
-      //res.header('Content-Type', 'application/json');
-      //res.send(json);
-      res.redirect('/portal');
+      //res.redirect('/portal');
+      res.header('Content-Type', 'application/json');
+      res.send({"success":true, "msg":"Login Success", "next":"/portal"});
       ssh.stdout.removeListener('data',callback);
     } else {
       data2process = data2process + data.toString();
@@ -106,7 +105,8 @@ app.get('/op/get-firewall-policies',requiresLogin,function(req, res){
 
 app.get('/op/get-fwdd-information',requiresLogin,function(req,res){
  //run command against SSH
- ssh.stdin.write(netconfCmd.getFwddInformation());
+ var callback = function(ssh) {
+  ssh.stdin.write(netconfCmd.getFwddInformation());
   var callback = function (data) {
     if (data.toString().match(/\]\]>\]\]>/g)) {
       data2process = data2process + data.toString();
@@ -118,6 +118,8 @@ app.get('/op/get-fwdd-information',requiresLogin,function(req,res){
     };
   };
   ssh.stdout.on('data', callback);
+ };
+ getSSHSession(req,callback);
 });
 
 app.get('/op/get-route-engine-information',requiresLogin, function(req,res){
@@ -171,12 +173,10 @@ function loginNeeded(req,res,next) {
 
 function requiresLogin(req,res,next) {
   var sessionID = req.sessionID;
-  console.log(sessionID);
   req.sessionStore.get(sessionID, function(err,data){
     if (!!data) {
       if (req.session.junosid == data.junosid) {
         //check the ssh session is active somehow
-        console.log('next');
         next();
       } else {
         res.redirect('/');
@@ -187,7 +187,7 @@ function requiresLogin(req,res,next) {
   });
 };
 
-function getSSHSession(req) {
+function getSSHSession(req,command) {
   //grab session ID
   //grab session object
   //check to see if session is alive
@@ -197,10 +197,31 @@ function getSSHSession(req) {
     if (err) {
       console.log(err);
     };
+    console.log('test session');
     if (!!data) {
       if (sessID == data.junosid) {
         //check the ssh session is active somehow
-          return sshSessions[data.junosid] //ssh session
+        //try and send a command getAuthorizationInformation
+        var sshSession = sshSessions[data.junosid];
+        console.log('Session');
+        console.log(sshSession);
+        //callback(sshSessions[data.junosid]); //ssh session
+        sshSession.stdin.write(netconfCmd.getAuthorizationInformation());
+        var callback = function (data,command) {
+          if (data.toString().match(/\]\]>\]\]>/g)) {
+            data2process = data2process + data.toString();
+            processData(data2process,ssh,res);
+            data2process = '';
+            sshSession.stdout.removeListener('data',callback);
+            command(sshSession);
+          } if (!!data) {
+            console.log(data.toString());
+          } else {
+            console.log(data.toString());
+            data2process = data2process + data.toString();
+          };
+        };
+        sshSession.stdout.on('data', callback);      
       } else {
         return 1;
       };
@@ -209,4 +230,4 @@ function getSSHSession(req) {
     };
     return 1; //return 1 as something bad happened
   });
-}
+};

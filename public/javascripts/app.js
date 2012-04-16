@@ -19,6 +19,7 @@ Ext.define('JWub.view.ui.LoginForm', {
               method: 'POST',
               success: function(form, action) {
                 Ext.Msg.alert('Success', action.result.msg);
+                window.location = action.result.next;
               },
               failure: function(form, action) {
                 Ext.Msg.alert('Failed', action.result.msg);
@@ -66,6 +67,7 @@ Ext.define('JWub.view.ui.LoginForm', {
               method: 'POST',
               success: function(form, action) {
                 Ext.Msg.alert('Success', action.result.msg);
+                window.location = action.result.next;
               },
               failure: function(form, action) {
                 Ext.Msg.alert('Failed', action.result.msg);
