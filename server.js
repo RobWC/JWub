@@ -51,7 +51,7 @@ app.get('/portal',requiresLogin,function(req,res){
 app.post('/login', function(req, res){
   //console.log(req.body.username);
   //console.log(req.body.password);
-  var ssh = spawn('ssh', ['root@10.0.1.2', '-s' ,'netconf']); //spawn on connect
+  var ssh = spawn('ssh', ['root@localhost', '-p', '1234', '-s' ,'netconf']); //spawn on connect
   var callback = function (data) {
     if (data.toString().match(/\]\]>\]\]>/g)) {
       data2process = data2process + data.toString();
