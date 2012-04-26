@@ -19,7 +19,7 @@ app.configure(function() {
     cookie: {
       path: '/',
       httpOnly: true,
-      maxAge: 300000
+      maxAge: 600000
     }
   }));
   app.set('views', __dirname + '/views');
@@ -111,18 +111,12 @@ app.get('/op/get-firewall-policies', requiresLogin, function(req, res) {
 //OLD VERSION
 app.get('/op/get-route-engine-information', requiresLogin, function(req, res) {
   //run command against SSH
-  ssh.stdin.write(netconfCmd.getRouteEngineInformation());
-  var callback = function(data) {
-    if (data.toString().match(/\]\]>\]\]>/g)) {
-      data2process = data2process + data.toString();
-      processData(data2process, ssh, res);
-      data2process = '';
-      ssh.stdout.removeListener('data', callback);
-    } else {
-      data2process = data2process + data.toString();
-    };
+    var options = {
+    req: req,
+    res: res,
+    command: netconfCmd.getRouteEngineInformation()
   };
-  ssh.stdout.on('data', callback);
+  sendCommand(options);
 });
 
 app.listen(3000);
@@ -246,52 +240,6 @@ function sendCommand(options) {
       };
     } else {
       return 1; //return 1 as something bad happened
-    };
-    return 1; //return 1 as something bad happened
-  });
-};
-
-function getSSHSession(req, command) {
-  //grab session ID
-  //grab session object
-  //check to see if session is alive
-  //return alive session s
-  var sessID = req.session.junosid;
-  req.sessionStore.get(sessID, function(err, data) {
-    if (err) {
-      console.log(err);
-    };
-    console.log('test session');
-    if ( !! data) {
-      if (sessID == data.junosid) {
-        //check the ssh session is active somehow
-        //try and send a command getAuthorizationInformation
-        var sshSession = sshSessions[data.junosid];
-        console.log('Session');
-        console.log(sshSession);
-        //callback(sshSessions[data.junosid]); //ssh session
-        sshSession.stdin.write(netconfCmd.getAuthorizationInformation());
-        var callback = function(data, command) {
-          if (data.toString().match(/\]\]>\]\]>/g)) {
-            data2process = data2process + data.toString();
-            processData(data2process, ssh, res);
-            data2process = '';
-            sshSession.stdout.removeListener('data', callback);
-            sshSession.stdin.write(sshSession);
-          }
-          if ( !! data) {
-            console.log(data.toString());
-          } else {
-            console.log(data.toString());
-            data2process = data2process + data.toString();
-          };
-        };
-        sshSession.stdout.on('data', callback);
-      } else {
-        return 1;
-      };
-    } else {
-      return 1;
     };
     return 1; //return 1 as something bad happened
   });
