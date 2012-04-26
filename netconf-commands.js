@@ -9,27 +9,44 @@ exports.closeSession = function() {
   return rpc;
 };
 
-exports.getChassis = function() {
+exports.getSoftwareInformation = function() {
   var rpc = '<rpc><get-software-information></get-software-information></rpc>]]>]]>';
   return rpc;
 };
 
 exports.getPolicy = function() {
-  var rpc = '<rpc><get-firewall-policies></get-firewall-policies></rpc>';
+  var rpc = '<rpc><get-firewall-policies></get-firewall-policies></rpc>]]>]]>';
   return rpc;
 };
 
 exports.getFwddInformation = function() {
-  var rpc = '<rpc><get-fwdd-information></get-fwdd-information></rpc>';
+  var rpc = '<rpc><get-fwdd-information></get-fwdd-information></rpc>]]>]]>';
   return rpc;
 };
 
 exports.getRouteEngineInformation = function() {
-  var rpc = '<rpc><get-route-engine-information></get-route-engine-information></rpc>';
+  var rpc = '<rpc><get-route-engine-information></get-route-engine-information></rpc>]]>]]>';
   return rpc;
 };
 
 exports.getAuthorizationInformation = function() {
-  var rpc = '<rpc><get-authorization-information></get-authorization-information></rpc>';
+  var rpc = '<rpc><get-authorization-information></get-authorization-information></rpc>]]>]]>';
+  return rpc;
+};
+
+exports.getSoftwareVersion = function() {
+  var rpc = '<rpc><get-software-information></get-software-information></rpc>]]>]]>';
+  return rpc;
+};
+
+exports.getChassisInventory = function() {
+  //show chassis hardware
+  var rpc = '<rpc><get-chassis-inventory></get-chassis-inventory></rpc>]]>]]>';
+  return rpc;
+};
+
+exports.getFlowSessionInformation = function() {
+  //show security flow session
+  var rpc = '<rpc><get-flow-session-information></get-flow-session-information></rpc>]]>]]>';
   return rpc;
 };
