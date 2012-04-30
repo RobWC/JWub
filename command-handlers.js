@@ -1,5 +1,5 @@
 var netconfCmd = require('./netconf-commands.js');
-var parser = require('xml2json');
+var ncParser = require('./netconf-parser.js');
 
 exports.sendCommand = function(options) {
   //options res: req: callback:
@@ -26,8 +26,7 @@ exports.sendCommand = function(options) {
           if (data.toString().match(/\]\]>\]\]>/g)) {
             var dataStr = sessionObj.data2process + data.toString();
             sessionObj.data2process = '';
-            var json = parser.toJson(dataStr.replace(/\]\]>\]\]>/g, '').replace(/^\s+|\s+$/g, '').replace(/(\w)[-]{1}(\w)/gi, '$1$2'));
-            var parsedJson = JSON.parse(json);
+            var parsedJson = ncParser.netconf2obj(dataStr);
             //validate that the connection worked if it did then move forward, if not throw error
             if (parsedJson.rpcreply.authorizationinformation.userinformation.user == 'root') {
               //start nested callback
@@ -40,8 +39,7 @@ exports.sendCommand = function(options) {
                 if (data.toString().match(/\]\]>\]\]>/g)) {
                   var dataStr = sessionObj.data2process + data.toString();
                   sessionObj.data2process = '';
-                  var json = parser.toJson(dataStr.replace(/\]\]>\]\]>/g, '').replace(/^\s+|\s+$/g, '').replace(/(\w)[-]{1}(\w)/gi, '$1$2'));
-                  var parsedJson = JSON.parse(json);
+                  var parsedJson = ncParser.netconf2obj(dataStr);
                   //validate that the connection worked if it did then move forward, if not throw error
                   options.res.send(parsedJson);
                   sessionObj.session.stdout.removeListener('data', commandCallback);

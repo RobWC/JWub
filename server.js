@@ -3,7 +3,7 @@ var netconfCmd = require('./netconf-commands.js');
 var commandHand = require('./command-handlers.js');
 var SSHSession = require('./model-obj.js').SSHSession;
 var mw = require('./jweb-middleware.js');
-var parser = require('xml2json');
+var ncParser = require('./netconf-parser.js');
 var spawn = require('child_process').spawn;
 var express = require('express');
 var app = require('express').createServer();
@@ -71,8 +71,7 @@ app.post('/login', function(req, res) {
       data2process = data2process + data.toString();
       var dataStr = data2process;
       data2process = '';
-      var json = parser.toJson(dataStr.replace(/\]\]>\]\]>/g, '').replace(/^\s+|\s+$/g, '').replace(/(\w)[-]{1}(\w)/gi, '$1$2'));
-      var parsedJson = JSON.parse(json);
+      var parsedJson = ncParser.netconf2obj(dataStr);
       if ( !! parsedJson.hello.sessionid) {
         req.session.junosid = parsedJson.hello.sessionid;
         sshSessions[parsedJson.hello.sessionid] = new SSHSession(req.session.junosid,ssh,'');
