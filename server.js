@@ -2,17 +2,17 @@
 var netconfCmd = require('./netconf-commands.js');
 var commandHand = require('./command-handlers.js');
 var mw = require('./jweb-middleware.js');
-var srxLogin = 'root@10.0.1.2'
-
-//ssh stuff
 var parser = require('xml2json');
 var spawn = require('child_process').spawn;
-var sshSessions = new Array();
-var data2process = new String(); //this needs to be made multiuser safe
-//configure express
 var express = require('express');
 var app = require('express').createServer();
 var RedisStore = require('connect-redis')(express);
+
+//ssh stuff
+var srxLogin = 'root@10.0.1.2'
+var sshSessions = new Array();
+var data2process = new String(); //this needs to be made multiuser safe
+//configure express
 app.configure(function() {
   app.use(express.cookieParser());
   app.use(express.bodyParser());
