@@ -13,7 +13,6 @@ Ext.define('JWub.view.ui.LoginForm', {
         if (event.getKey() == event.ENTER) {
           var form = Ext.getCmp('loginForm');
           if (form.form.isValid()) {
-            // Submit the Ajax request and handle the response
             form.submit({
               url: '/login',
               method: 'POST',
@@ -26,7 +25,7 @@ Ext.define('JWub.view.ui.LoginForm', {
               }
             });
           }
-        };
+        }
       }
     }
   },
