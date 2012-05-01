@@ -12,8 +12,7 @@ var RedisStore = require('connect-redis')(express);
 //ssh stuff
 var srxLogin = 'root@172.19.101.132'
 var sshSessions = new Array(); // objects stored in here look like this junossessionid { session: 'sshChild', data2process: 'string'}
-//var data2process = new String(); //this needs to be made multiuser safe
-//configure express
+
 app.configure(function() {
   app.use(express.cookieParser());
   app.use(express.bodyParser());
@@ -62,8 +61,6 @@ app.get('/portal', mw.requiresLogin, function(req, res) {
 });
 
 app.post('/login', function(req, res) {
-  //console.log(req.body.username);
-  //console.log(req.body.password);
   var ssh = spawn('ssh', [srxLogin, '-s', 'netconf']); //spawn on connect
   var data2process = '';
   var callback = function(data) {
