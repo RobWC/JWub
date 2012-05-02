@@ -15,11 +15,9 @@ exports.sendCommand = function(options) {
       console.log(err); //cant grab the cookie, something bad has happened
     };
     if ( !! data) { //alright we have some sort of cookie data
-      console.log('session exists!');
       if (JUNOSsessID == data.junosid) { //hey is this 
         //check the ssh session is active somehow
         //try and send a command getAuthorizationInformation
-        console.log('pulling session');
         var sessionObj = options.sshSessions[data.junosid];
         sessionObj.session.stdin.write(netconfCmd.getAuthorizationInformation()); // alright lets test this shit
         var callback = function(data, command) {
@@ -32,7 +30,6 @@ exports.sendCommand = function(options) {
               //start nested callback
               sessionObj.session.stdout.removeListener('data', callback);
               //send actual command here
-              
               sessionObj.session.stdin.write(options.command);
               
               var commandCallback = function(data, command) {
@@ -47,7 +44,6 @@ exports.sendCommand = function(options) {
                 } else if ( !! data) {
                   sessionObj.data2process = sessionObj.data2process + data.toString();
                 } else {
-                  console.log('ELSE');
                   sessionObj.data2process = sessionObj.data2process + data.toString();
                 };
               };
@@ -60,7 +56,6 @@ exports.sendCommand = function(options) {
           } else if ( !! data) {
             sessionObj.data2process = sessionObj.data2process + data.toString();
           } else {
-            console.log('ELSE');
             sessionObj.data2process = sessionObj.data2process + data.toString();
           };
         };

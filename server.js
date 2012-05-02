@@ -7,7 +7,6 @@ var ncParser = require('./netconf-parser.js');
 var spawn = require('child_process').spawn;
 var express = require('express');
 var app = require('express').createServer();
-var RedisStore = require('connect-redis')(express);
 
 //ssh stuff
 var srxLogin = 'root@172.19.101.132'
@@ -18,7 +17,6 @@ app.configure(function() {
   app.use(express.bodyParser());
   app.use(express.session({
     secret: "the pants are undefeated",
-    store: new RedisStore,
     cookie: {
       path: '/',
       httpOnly: true,
