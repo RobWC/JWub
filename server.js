@@ -106,11 +106,9 @@ app.get('/op/get-firewall-policies', mw.requiresLogin, function(req, res) {
     sshSessions: sshSessions,
     command: netconfCmd.getPolicy()
   };
-  console.log('sending command');
   commandHand.sendCommand(options);
 });
 
-//OLD VERSION
 app.get('/op/get-route-engine-information', mw.requiresLogin, function(req, res) {
   //run command against SSH
     var options = {
@@ -118,6 +116,17 @@ app.get('/op/get-route-engine-information', mw.requiresLogin, function(req, res)
     res: res,
     sshSessions: sshSessions,
     command: netconfCmd.getRouteEngineInformation()
+  };
+  commandHand.sendCommand(options);
+});
+
+app.get('/op/get-software-information', mw.requiresLogin, function(req, res) {
+  //run command against SSH
+    var options = {
+    req: req,
+    res: res,
+    sshSessions: sshSessions,
+    command: netconfCmd.getSoftwareInformation()
   };
   commandHand.sendCommand(options);
 });
